@@ -113,7 +113,6 @@ ${severityEmoji} **${vuln.severity.toUpperCase()}** | Type: **${vuln.type.toUppe
   if (vuln.euvd_id) identifiers.push(`EUVD: \`${vuln.euvd_id}\``);
   if (vuln.zdi_id) identifiers.push(`ZDI: \`${vuln.zdi_id}\``);
   if (vuln.github_advisory_id) identifiers.push(`GHSA: \`${vuln.github_advisory_id}\``);
-  if (vuln.mitre_tracking_id) identifiers.push(`MITRE: \`${vuln.mitre_tracking_id}\``);
   if (vuln.cvss_score) identifiers.push(`CVSS: \`${vuln.cvss_score}\``);
   
   if (identifiers.length > 0) {
