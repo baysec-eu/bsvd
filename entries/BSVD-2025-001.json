@@ -1,0 +1,88 @@
+{
+  "id": "BSVD-2025-001",
+  "title": "DLL Sideloading/Hijacking in Double Commander",
+  "description": "Double Commander (v1.1.23 and prior) attempts to load certain DLLs (e.g., libheif.dll, librsvg.2-2.dll) from locations not securely bundled with the application. An attacker with write access to any directory in the system PATH may insert a malicious DLL to achieve arbitrary code execution. If the application is launched with administrative privileges, this can result in full system compromise. This vulnerability aligns with MITRE ATT&CK technique T1574.002: Hijack Execution Flow: DLL Side-Loading and can be leveraged by adversaries post-exploitation to maintain persistence or escalate privileges.",
+  "severity": "high",
+  "type": "vulnerability",
+  "cve_id": "CVE-PENDING",
+  "euvd_id": null,
+  "zdi_id": null,
+  "github_advisory_id": null,
+  "cvss_score": "7.8",
+  "cvss_vector": "CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H",
+  "base_score": 7.8,
+  "exploitability_score": 1.8,
+  "impact_score": 5.9,
+  "affected_vendors": [
+    "Double Commander Team"
+  ],
+  "affected_products": [
+    "Double Commander v1.1.23 and earlier"
+  ],
+  "reference_urls": [
+    "https://doublecmd.sourceforge.io",
+    "https://github.com/doublecmd/doublecmd",
+    "https://cve.mitre.org/cve/request_id.html",
+    "https://news.baycode.eu/0x04-lateral-movement/#0x09-persistence-through-dll-hijacking-and-proxying"
+  ],
+  "tags": [
+    "dll-sideloading",
+    "dll-hijacking",
+    "privilege-escalation",
+    "persistence",
+    "local-exploit",
+    "file-manager"
+  ],
+  "authors": [
+    {
+      "name": "Krystian Bajno",
+      "email": "krystian.bajno@baysec.eu",
+      "organization": "BAYSEC",
+      "pgp_key": "Available on request"
+    }
+  ],
+  "mitre_cwe_ids": [
+    "CWE-427"
+  ],
+  "mitre_attack_techniques": [
+    "T1574.002"
+  ],
+  "disclosure_timeline": [
+    {
+      "date": "2025-04-10",
+      "event": "Initial Discovery",
+      "description": "Vulnerability discovered and reported privately to Double Commander developers (alexx2000@mail.ru, rich2014.git@outlook.com, denis.bisson@denisbisson.org)"
+    },
+    {
+      "date": "2025-04-21",
+      "event": "Vendor Response",
+      "description": "Alexander Koblov confirmed fix deployed in Double Commander 1.1.24"
+    },
+    {
+      "date": "2025-04-22",
+      "event": "CVE Request to MITRE",
+      "description": "CVE ID requested from MITRE via cve-request@mitre.org"
+    },
+    {
+      "date": "2025-04-22",
+      "event": "CERT.PL Notification",
+      "description": "Parallel notification sent to CERT Polska"
+    },
+    {
+      "date": "2025-04-23",
+      "event": "MITRE Acknowledgment",
+      "description": "MITRE confirmed CVE request received "
+    },
+    {
+      "date": "2025-04-24",
+      "event": "CERT.PL Response",
+      "description": "CERT.PL confirmed MITRE should handle as primary CNA per CVE assignment rules"
+    }
+  ],
+  "vendor_response": "Positive - Issue confirmed and fixed in version 1.1.24",
+  "fix_available": true,
+  "fix_version": "1.1.24",
+  "proof_of_concept": "A benign DLL executing calc.exe was placed in a user-writable PATH directory. Upon launching doublecmd.exe, the DLL was loaded and the payload executed, demonstrating successful DLL hijacking. Behavior consistent with MITRE ATT&CK T1574.002. Visual proof-of-concept documentation (dll-sideloading.png, calc.png) available upon request.",
+  "published_at": "2025-04-22T00:00:00Z",
+  "updated_at": "2025-04-24T15:08:00Z"
+} 

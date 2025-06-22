@@ -1,0 +1,161 @@
+name: Build BSVD Database
+
+on:
+  push:
+    branches: [ main, master ]
+    paths:
+      - 'entries/**'
+      - 'scripts/build-database.js'
+  pull_request:
+    branches: [ main, master ]
+    paths:
+      - 'entries/**'
+      - 'scripts/build-database.js'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-database:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        fetch-depth: 0
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        
+    - name: Verify entries and scripts
+      run: |
+        echo "📁 Checking directory structure..."
+        ls -la
+        echo "📄 Checking entries..."
+        ls -la entries/ || echo "⚠️ No entries directory"
+        echo "🔧 Checking scripts..."
+        ls -la scripts/ || echo "⚠️ No scripts directory"
+        
+        if [ ! -f scripts/build-database.js ]; then
+          echo "❌ Build script not found"
+          exit 1
+        fi
+        
+        chmod +x scripts/build-database.js
+        echo "✅ Build script ready"
+      
+    - name: Build database
+      run: |
+        echo "🏗️ Building BSVD database..."
+        node scripts/build-database.js
+        
+        if [ $? -ne 0 ]; then
+          echo "❌ Database build failed"
+          exit 1
+        fi
+        
+        echo "✅ Database build completed successfully"
+      
+    - name: Validate generated database
+      run: |
+        if [ ! -f all.json ]; then
+          echo "❌ all.json was not generated"
+          exit 1
+        fi
+        
+        # Check if it's valid JSON
+        if ! jq empty all.json 2>/dev/null; then
+          echo "❌ all.json is not valid JSON"
+          cat all.json
+          exit 1
+        fi
+        
+        # Check for required structure
+        if ! jq -e '.metadata and .vulnerabilities' all.json >/dev/null; then
+          echo "❌ all.json missing required structure (metadata, vulnerabilities)"
+          exit 1
+        fi
+        
+        # Display database stats
+        echo "✅ Database validation successful!"
+        echo "📊 Database statistics:"
+        jq '.metadata' all.json
+        
+        VULN_COUNT=$(jq '.vulnerabilities | length' all.json)
+        echo "📄 Vulnerability count: ${VULN_COUNT}"
+        
+    - name: Generate README
+      run: |
+        echo "📝 Generating README.md from database..."
+        chmod +x scripts/generate-readme.js
+        node scripts/generate-readme.js
+        
+        if [ $? -ne 0 ]; then
+          echo "❌ README generation failed"
+          exit 1
+        fi
+        
+        echo "✅ README.md generated successfully"
+        
+    - name: Check for changes
+      id: changes
+      run: |
+        git add all.json README.md
+        if git diff --cached --quiet; then
+          echo "changed=false" >> $GITHUB_OUTPUT
+          echo "No changes to database or README"
+        else
+          echo "changed=true" >> $GITHUB_OUTPUT
+          echo "Changes detected in database or README"
+          git diff --cached --name-only
+        fi
+        
+    - name: Commit and push changes
+      if: steps.changes.outputs.changed == 'true' && github.event_name != 'pull_request'
+      run: |
+        git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "github-actions[bot]"
+        
+        # Count entries and get timestamp
+        ENTRY_COUNT=$(ls entries/*.json 2>/dev/null | wc -l || echo "0")
+        TIMESTAMP=$(date -u '+%Y-%m-%d %H:%M:%S UTC')
+        
+        git commit -m "🤖 Auto-update database and README from entries
+
+Generated from ${ENTRY_COUNT} vulnerability entries
+Last updated: ${TIMESTAMP}
+
+- Updated all.json with latest vulnerability data
+- Generated README.md with latest ${MAX_README_ENTRIES:-10} entries
+
+[skip ci]"
+        
+        # Push using the default GITHUB_TOKEN
+        git push origin HEAD:${GITHUB_REF#refs/heads/}
+        
+    - name: Upload database artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: bsvd-database
+        path: all.json
+        retention-days: 30
+        
+    - name: Display final summary
+      run: |
+        echo "🎉 BSVD Database Build Complete!"
+        echo ""
+        echo "📁 Repository structure:"
+        find . -name "*.json" -not -path "./.git/*" | sort
+        echo ""
+        echo "📊 Final database stats:"
+        if [ -f all.json ]; then
+          echo "- Total vulnerabilities: $(jq '.metadata.total_count' all.json)"
+          echo "- Sources: $(jq -r '.metadata.sources | join(\", \")' all.json)"
+          echo "- Generated at: $(jq -r '.metadata.generated_at' all.json)"
+          echo "- Database size: $(du -h all.json | cut -f1)"
+        fi

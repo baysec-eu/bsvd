@@ -1,0 +1,38 @@
+{
+  "name": "bsvd",
+  "version": "1.0.0",
+  "description": "Baysec Vulnerability Database - Individual entry files compiled into a master database",
+  "main": "all.json",
+  "scripts": {
+    "build": "node scripts/build-database.js",
+    "readme": "node scripts/generate-readme.js",
+    "build-all": "npm run build && npm run readme",
+    "validate": "node scripts/validate-entries.js",
+    "stats": "node scripts/show-stats.js",
+    "test": "npm run validate && npm run build-all"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/BAYSEC/bsvd.git"
+  },
+  "keywords": [
+    "vulnerability",
+    "security",
+    "database",
+    "baysec",
+    "cve",
+    "euvd",
+    "mitre"
+  ],
+  "author": "BAYSEC",
+  "license": "MIT",
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "files": [
+    "all.json",
+    "entries/",
+    "scripts/",
+    "README.md"
+  ]
+} 
